@@ -175,7 +175,7 @@ public:
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
             throw std::runtime_error("Failed to initialize GLAD");
 
-        GLCALL(glEnable(GL_MULTISAMPLE));
+        // GLCALL(glEnable(GL_MULTISAMPLE));
 
         return {window, width, height};
     }

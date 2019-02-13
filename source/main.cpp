@@ -45,13 +45,21 @@ double last_time = 0.0;  // Time of last frame
 
 
 int program_selection = 0;
-bool show_normals = false;
-
+bool show_normals  = false;
+bool show_mouse    = false;
 
 void process_input(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    {
+        show_mouse = !show_mouse;
+
+        if (show_mouse)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            // glfwSetWindowShouldClose(window, true);
+    }
 
     auto speed = static_cast<float>(delta_time * camera_speed);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -212,15 +220,17 @@ int main()
     glfwSetCursorPosCallback(window.id, mouse_callback);
     glfwSetScrollCallback(window.id, scroll_callback);
     glfwSetInputMode(window.id, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+
     //
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImGuiIO& io = ImGui::GetIO(); // (void)io;
-    // //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    // //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-    // ImGui_ImplGlfw_InitForOpenGL(window, true);
-    // ImGui_ImplOpenGL3_Init();
-    // ImGui::StyleColorsDark();  // Setup style
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); // (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+    ImGui_ImplGlfw_InitForOpenGL(window.id, true);
+    ImGui_ImplOpenGL3_Init();
+    ImGui::StyleColorsDark();  // Setup style
 
 
 
@@ -228,6 +238,8 @@ int main()
     camera.aspect_ratio = static_cast<float>(window.width) / static_cast<float>(window.height);
 
     // Positions
+    glm::vec3 object_position(0.0f, 0.40f, 0.0f);
+
     glm::vec3 cube_positions[] = {
             glm::vec3( 5.0f, 0.5f, 0.0f),
             glm::vec3( 2.0f, 0.5f, 6.0f),
@@ -251,7 +263,6 @@ int main()
             glm::vec3(0.0f, 1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 1.0f)
     };
-
 
     std::vector<glm::vec3> vegetation;
     vegetation.emplace_back(-1.5f, 0.5f, 3.48f);
@@ -699,7 +710,7 @@ int main()
         // Model
         model = {};
         model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.40f, 0.0f));
+        model = glm::translate(model, object_position);
         // model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         object_shader.load_2D_textures({texture_house_diffuse, texture_house_diffuse});
         object_shader.load("model", model);
@@ -820,23 +831,19 @@ int main()
         }
 
 
-        // // IMGUI
-        // ImGui_ImplOpenGL3_NewFrame();
-        // ImGui_ImplGlfw_NewFrame();
-        // ImGui::NewFrame();
-        //
-        // {
-        //     static float color[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-        //     ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-        //     ImGui::ColorEdit4("Color", color);
-        //
-        //     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        //
-        //     GLCALL(glClearColor(color[0], color[1], color[2], color[3]));
-        // }
-        //
-        // ImGui::Render();
-        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // IMGUI
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        {
+            ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+            ImGui::SliderFloat3("position", &object_position.x, -10.0f, 10.0f);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        }
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
 
@@ -849,9 +856,9 @@ int main()
 
 
     // Cleanup
-    // ImGui_ImplOpenGL3_Shutdown();
-    // ImGui_ImplGlfw_Shutdown();
-    // ImGui::DestroyContext();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // glfwDestroyWindow(window);
     glfwTerminate();
